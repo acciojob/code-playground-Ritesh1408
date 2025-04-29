@@ -1,63 +1,49 @@
-import React, { useState } from "react";
-import { BrowserRouter as Router, Route, Redirect, Switch, Link } from "react-router-dom";
-import { AuthProvider, useAuth } from "./AuthContext";
-import PrivateRoute from "./PrivateRoute";
-import Login from "../pages/Login";
-import Home from "../pages/Home";
-import "./../styles/App.css";
-
-const Navbar = ({ onHomeClick }) => {
-
-  return (
-    <nav>
-      <ul>
-        <li><Link to="/home" onClick={onHomeClick}>Playground</Link></li>
-        <li><Link to="/login">Login</Link></li>
-      </ul>
-    </nav>
-  );
-};
-
-const AppContent = () => {
-  const { isAuthenticated } = useAuth();
-  const [showHomeMessage, setShowHomeMessage] = useState(false);
-
-  const handleHomeClick = () => {
-    // if (isAuthenticated) setShowHomeMessage(true);
-    setShowHomeMessage(true);
-  };
-
-  return (
-    <>
-      <Navbar onHomeClick={handleHomeClick} />
-      <div className="main-container">
-        <p>
-          {isAuthenticated
-            ? "Logged in, Now You can enter Playground"
-            : "You are not authenticated, Please login first"}
-        </p>
-        {isAuthenticated && showHomeMessage}
-        <Switch>
-          <PrivateRoute exact path="/home" component={Home} />
-          <Route path="/login" component={Login} />
-          <Redirect to="/login" />
-        </Switch>
-
-      
-      </div>
-    </>
-  );
-};
+import React, { useState } from 'react';
+import { BrowserRouter as Router, Route, Routes, Link, Navigate } from 'react-router-dom';
+import LoginPage from './LoginPage';
+import Playground from './Playground';
 
 
 const App = () => {
+  const [isAuthenticated, setAuth] = useState(false);
+
+  const handleLogin = () => {
+    setAuth(true);
+  };
+
+  const handleLogout = () => {
+    setAuth(false);
+  };
 
   return (
-    <AuthProvider>
-      <Router>
-        <AppContent />
-      </Router>
-    </AuthProvider>
+    <Router>
+      <div className="main-container">
+        <p>{isAuthenticated ? 'Logged in, Now you can enter Playground' : 'You are not authenticated, Please login first'}</p>
+        <nav>
+          <ul>
+            <li>
+              <Link to="/playground">PlayGround</Link>
+            </li>
+            <li>
+              <Link to="/login">Login</Link>
+            </li>
+          </ul>
+        </nav>
+        <Routes>
+          <Route path="/login" element={
+            <LoginPage 
+              isAuthenticated={isAuthenticated} 
+              handleLogin={handleLogin} 
+              handleLogout={handleLogout} 
+            />} 
+          />
+          <Route path="/playground" element={
+           isAuthenticated ? <Playground /> : <Navigate to="/login" replace />
+          } />
+          <Route path="*" element={<div className="main-container">Page Not Found</div>} />
+        </Routes>
+      </div>
+    </Router>
   );
 };
 
